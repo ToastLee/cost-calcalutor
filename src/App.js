@@ -1,29 +1,14 @@
-import React, {Component} from "react";
+//function Component
+import React, {useState} from "react";
 import "./App.css";
 
-export default class App extends Component {
+export default function App() {
   //state로 만들기
-  state = {
-    value: "",
-    
-    todoData : [
-      {
-        id: "1",
-        title: "공부하기",
-        completed: false
-      },
-      {
-        id: "2",
-        title: "청소하기",
-        completed: false
-      },
-    ],
-    
-  }
-
+  const [todoData, setTodoData] = useState([]);
+  const [value, setValue] = useState("");
 
 //JSX 안에서 스타일링
-btnStyle = {
+const btnStyle = {
   color: "#fff",
   border: "none",
   padding: "5px, 9px",
@@ -32,7 +17,7 @@ btnStyle = {
     float: "right"
   }
 // 목록 아래 점선 만들기 
-getStyle = () => {
+const getStyle = () => {
   return {
     padding: "10px",
     borderBottom: "1px #ccc dotted",
@@ -40,7 +25,7 @@ getStyle = () => {
   }
 }
 // 할일 목록에 줄 긋기 (완료표시)
-listStyle = (completed) => {
+const listStyle = (completed) => {
   return {
     padding: "10px",
     borderBottom: "1px #ccc dotted",
@@ -50,34 +35,37 @@ listStyle = (completed) => {
 };
 
 //클릭한 id만 제거하고 나머지는 유지
-handleClick = (id) => {
-  let newTodoData = this.state.todoData.filter(data => data.id !==id)
+const handleClick = (id) => {
+  let newTodoData = todoData.filter(data => data.id !==id)
   //State을 이용해 삭제
-  this.setState({todoData: newTodoData });
+  console.log("newTodoData", newTodoData);
+  setTodoData(newTodoData);
 };
 
-handleChange = (e) => {
-  this.setState({value: e.target.value});
+const handleChange = (e) => {
+  setValue(e.target.value);
 }
 
-handleSubmit = (e) => {
+const handleSubmit = (e) => {
   //form 안에 input 전송시 페이지 리로드 막기
   e.preventDefault();
 
   //새로운 할 일 데이터
   let newTodo = {
     id: Date.now(),
-    title: this.state.value,
+    title: value,
     completed: false,
   }
 
   // 원래 있던 할일에 새로운 할 일 추가하기(전개 연산자로 더해줌), 입력란에 글씨 지워주기
-  this.setState({todoData: [...this.state.todoData, newTodo], value: ""});
+  //전 todo 데이터를 넣어주고 새로 투두 데이터를 추가 
+  setTodoData((prev) => [...prev, newTodo]);
+  setValue("");
 }
 
 //체크 박스 클릭해서 완료상태로 바꾸기
-handleCompleteChange = (id) => {
-  let newTodoData = this.state.todoData.map((data) => {
+const handleCompleteChange = (id) => {
+  let newTodoData = todoData.map((data) => {
     //클릭한 것과 그 state안에 있는 것 중 하나가 같다면 반대 속성으로 토글
     if (data.id === id) {
       data.completed = !data.completed;
@@ -85,29 +73,29 @@ handleCompleteChange = (id) => {
     return data;
   });
 
-  this.setState({todoData: newTodoData});
+  setTodoData(newTodoData);
 };
 
-  render() {
+
     return (
       <div className="container">
         <div className="todoBlock">
           <div className="title">
             <h1>할 일 목록</h1>
           </div>
-          {this.state.todoData.map((data) => (
-            <div style={this.listStyle(data.completed)} key={data.id}>
+          {todoData.map((data) => (
+            <div style={listStyle(data.completed)} key={data.id}>
               <p>
                 <input 
                 type="checkbox"
                 //체크박스에 변화가 생기면 data.id를 콜하기
-                onChange={() => this.handleCompleteChange(data.id)} 
+                onChange={() => handleCompleteChange(data.id)} 
                 defaultChecked={false} 
                 /> {" "}
                 {data.title}
                 <button 
-                  style={this.btnStyle} 
-                  onClick={() => this.handleClick(data.id)}
+                  style={btnStyle} 
+                  onClick={() => handleClick(data.id)}
                 >
                   x
                 </button>
@@ -116,14 +104,14 @@ handleCompleteChange = (id) => {
           ))}
 
           {/* 할일 목록 입력 UI */}
-          <form style={{display: 'flex'}} onSubmit={this.handleSubmit}>
+          <form style={{display: 'flex'}} onSubmit={handleSubmit}>
             <input 
               type="text" 
               name="value"
               style={{ flex: '10', padding: '5px'}}
               placeholder="해야 할 일을 입력하세요."
-              value={this.state.value}
-              onChange={this.handleChange}
+              value={value}
+              onChange={handleChange}
             />
 
             {/*입력 버튼 UI*/}
@@ -138,5 +126,4 @@ handleCompleteChange = (id) => {
         </div>
       </div>
     )
-  }
 }
