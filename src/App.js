@@ -16,16 +16,9 @@ const btnStyle = {
     cursor: "pointer",
     float: "right"
   }
-// 목록 아래 점선 만들기 
-const getStyle = () => {
-  return {
-    padding: "10px",
-    borderBottom: "1px #ccc dotted",
-    textDecoration: 'none'
-  }
-}
+
 // 할일 목록에 줄 긋기 (완료표시)
-const listStyle = (completed) => {
+const getStyle= (completed) => {
   return {
     padding: "10px",
     borderBottom: "1px #ccc dotted",
@@ -84,7 +77,7 @@ const handleCompleteChange = (id) => {
             <h1>할 일 목록</h1>
           </div>
           {todoData.map((data) => (
-            <div style={listStyle(data.completed)} key={data.id}>
+            <div style={getStyle(data.completed)} key={data.id}>
               <p>
                 <input 
                 type="checkbox"
