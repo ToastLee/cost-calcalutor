@@ -1,66 +1,88 @@
-import React, {useState, useCallback} from "react";
-import "./App.css";
-import Lists from "./components/Lists";
+import React, { useCallback, useMemo, useState } from 'react';
 import Form from "./components/Form";
+import Header from "./components/Header";
+import Lists from "./components/Lists";
+import './App.css';
 
-//로컬데이터에 존재하면 가져오고 없으면 빈 공간으로 가져오기
-const initialTodoData = localStorage.getItem("todoData")
-  ? JSON.parse(localStorage.getItem("todoData"))
+const initialCostData = localStorage.getItem("costData")
+  ? JSON.parse(localStorage.getItem("costData"))
   : [];
 
 function App() {
-  //state로 만들기
-  const [todoData, setTodoData] = useState(initialTodoData);
-  const [value, setValue] = useState("");
+  const [costData, setCostData] = useState(initialCostData);
+  const [isItemUpdated, setIsItemUpdated] = useState(false);
+  const [isItemDeleted, setIsItemDeleted] = useState(false);
 
-  //클릭한 id만 제거하고 나머지는 유지
-  //useCallback todoData가 변경시에만 다시 생성하게 만듦
+  const handleUpdate = (id, newName, newValue) => {
+    const updatedCostData = costData.map(item => {
+      if (item.id === id) {
+        const { id, costName } = item;
+        return { id, costName: newName, costValue: newValue };
+      }
+      return item;
+    });
+    setCostData(updatedCostData);
+    updateLocalStorage(updatedCostData);
+    setIsItemUpdated(true);
+    setTimeout(() => setIsItemUpdated(false), 2000);
+  };
+
+  const handleDelete = (id) => {
+    const updatedCostData = costData.filter(item => item.id !== id);
+    setCostData(updatedCostData);
+    updateLocalStorage(updatedCostData);
+    setIsItemDeleted(true);
+    setTimeout(() => setIsItemDeleted(false), 2000);
+  };
+
   const handleClick = useCallback((id) => {
-    let newTodoData = todoData.filter((data) => data.id !==id)
-    //State을 이용해 삭제
-    console.log("newTodoData", newTodoData);
-    setTodoData(newTodoData);
-    localStorage.setItem('todoData', JSON.stringify(newTodoData));
-    },
-    [todoData]
-  );
+    const newCostData = costData.filter((data) => data.id !== id);
+    setCostData(newCostData);
+    updateLocalStorage(newCostData);
+  }, [costData]);
 
-  const handleSubmit = (e) => {
-    //form 안에 input 전송시 페이지 리로드 막기
-    e.preventDefault();
+  const handleSubmit = (costName, costValue) => {
+    const newCost = {
+      id: Date.now(),
+      costName,
+      costValue,
+      completed: false,
+    };
 
-  //새로운 할 일 데이터
-  let newTodo = {
-    id: Date.now(),
-    title: value,
-    completed: false,
+    setCostData((prev) => [...prev, newCost]);
+    updateLocalStorage([...costData, newCost]);
   };
 
-  // 원래 있던 할일에 새로운 할 일 추가하기(전개 연산자로 더해줌), 입력란에 글씨 지워주기
-  //전 todo 데이터를 넣어주고 새로 투두 데이터를 추가 
-  setTodoData((prev) => [...prev, newTodo]);
-  localStorage.setItem('todoData', JSON.stringify([...todoData, newTodo]));
-  setValue("");
-  };
-
-  //할 일 목록 모두 지우기 
   const handleRemoveClick = () => {
-    setTodoData([]);
-    localStorage.setItem('todoData', JSON.stringify([]));
-  }
+    setCostData([]);
+    updateLocalStorage([]);
+  };
+
+  const updateLocalStorage = (data) => {
+    localStorage.setItem('costData', JSON.stringify(data));
+  };
+
+  const totalCost = useMemo(() => {
+    return costData.reduce((acc, cost) => acc + parseFloat(cost.costValue), 0).toString();
+  }, [costData]);
 
   return (
-    <div className="flex items-center justify-center w-screen bg-blue-100">
-      <div  className="w-full p-6 m-4 bg-white rounded-shadow md:w-3/4 md:max-w-lg lg:max-w-lg">
+    <div className="flex flex-col h-screen">
+      <Header isItemUpdated={isItemUpdated} isItemDeleted={isItemDeleted} />
+      <div className="w-screen p-6 m-4 bg-white rounded-shadow">
         <div className="flex justify-between mb-3">
-          <h1>할 일 목록</h1>
-          <button onClick={handleRemoveClick}>Delete All</button>
+          <Form handleSubmit={handleSubmit} />
         </div>
-        <Lists handleClick={handleClick} todoData={todoData} setTodoData={setTodoData}/>
-        
-        <Form handleSubmit={handleSubmit} value={value} setValue={setValue} />
-        
+        <Lists
+          costData={costData}
+          setCostData={setCostData}
+          handleClick={handleClick}
+          handleUpdate={handleUpdate}
+          handleDelete={handleDelete}
+        />
+        <button className="btn-remove" onClick={handleRemoveClick}>목록 지우기</button>
       </div>
+      <h1 className="w-full font-bold text-right text-4xl">총 지출: {totalCost}원</h1>
     </div>
   );
 }
